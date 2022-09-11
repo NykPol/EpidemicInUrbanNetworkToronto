@@ -46,4 +46,7 @@ In this paper, we show how transport policy decisions can affect the pandemic dy
 ![Fig7](https://github.com/NykPol/EpidemicInUrbanNetworkToronto/blob/main/graphics/TTCfreq_vs_TTCuser_vs_infected.png)
 
 
+# TTC Data
+https://open.toronto.ca/dataset/ttc-routes-and-schedules/ [access: 01 November 2020]
+
 
