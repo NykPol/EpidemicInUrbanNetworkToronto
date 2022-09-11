@@ -53,7 +53,10 @@ function TTC_usage_by_agents(s::Simulation, orig_map_nodes_num::Int64)
     time_spend_in_TTC = Float64[]
     TTC_types_used = Int64[]
     agents_time_to_work = calc_agents_time_to_work(s);
-    
+
+	route_types = Dict(1:orig_map_nodes_num .=> zeros(orig_map_nodes_num))
+    merge!(route_types, Dict((orig_map_nodes_num+1):12 .=> ones(12-orig_map_nodes_num)))
+
     for ag in s.agents
         ag_TTC_types_used = Int64[]
         ag_time_in_TTC = Dict()
@@ -63,17 +66,20 @@ function TTC_usage_by_agents(s::Simulation, orig_map_nodes_num::Int64)
 			TTC_on_path[key] = [i for i in keys(value) if i > orig_map_nodes_num]
 		end
         
-		for (key, value) in TTC_on_path
-			ag_time_in_TTC[key] = 0
-			for ttc_node in value
-            	ag_time_in_TTC[key] += ag.distances_home_work[key][ttc_node]
-            	push!(ag_TTC_types_used, route_types[ttc_node-orig_map_nodes_num])
+		if length(keys(TTC_on_path)) > 0
+			for (key, value) in TTC_on_path
+				ag_time_in_TTC[key] = 0
+				for ttc_node in value
+					ag_time_in_TTC[key] += ag.distances_home_work[key][ttc_node]
+					push!(ag_TTC_types_used, route_types[ttc_node-orig_map_nodes_num])
+				end
 			end
-        end
-		ag_time_in_TTC = mean(values(ag_time_in_TTC))
+			ag_time_in_TTC = mean(values(ag_time_in_TTC))
+		end
         
         push!(time_spend_in_TTC, ag_time_in_TTC)
         push!(TTC_types_used, length(unique(ag_TTC_types_used)))
+
     end
     time_spend_in_TTC_comp_to_total_path_time  = time_spend_in_TTC ./ agents_time_to_work 
     return time_spend_in_TTC, TTC_types_used, time_spend_in_TTC_comp_to_total_path_time

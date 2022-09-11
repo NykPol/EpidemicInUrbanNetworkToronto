@@ -26,7 +26,7 @@ using Plotly
 include("post_simulation_plots_functions.jl")
 
 # SETUP
-outputs_path = "SOME_PATH"
+outputs_path = "/Users/kingasiuta/Desktop/results/results_27_06"
 vars = ["p0"] # what has to be constant
 
 # reading possible parameter values

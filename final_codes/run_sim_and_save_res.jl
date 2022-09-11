@@ -1,6 +1,6 @@
 println("---> START <---")
 # Working directory to /final_codes/
-cd("SOME_PATH")
+cd("SOME_PATH/COVID_Simulator_Toronto/final_codes")
 println("Your current directory: ", pwd())
 
 if split(pwd(),"/")[end] != "final_codes"
@@ -56,7 +56,7 @@ sim_params_comb_df = create_df_with_sim_params(TTC_car_freq = 3*60
                             , when_to_run_people = 60.0*60.0*1.0
                             , when_to_run_wagons = 0.0
                             , sim_run_time_in_secs = 3*24*60*60
-                            , N_agents = 300
+                            , N_agents = 100
                             , agents_speed_in_sec_per_m = 0.8
                             , max_load_subway = 100
                             , max_load_streetcar = 100

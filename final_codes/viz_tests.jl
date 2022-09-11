@@ -28,8 +28,7 @@ include("post_simulation_plots_functions.jl")
 gr()
 
 folder_name = "res7"
-outputs_path = "SOME_PATH"
-#outputs_path = "SOME_PATH"
+outputs_path = "SOME_PATH/Desktop/results/$folder_name"
 vars = ["N_agents", "agents_speed_in_sec_per_m", "p0"] # what has to be constant 
 vars_heatmap = ["N_agents", "p0"] # what has to be constant
 points_in_time = [[1*24*3600, 2*24*3600, 3*24*3600]]
@@ -39,8 +38,7 @@ orig_map_nodes_num = 770
 for i in 1:5
     # SETUP
     folder_name = "res$i"
-    outputs_path = "SOME_PATH"
-    #outputs_path = "SOME_PATH"
+    outputs_path = "SOME_PATH/Desktop/results/$folder_name"
     vars = ["N_agents", "agents_speed_in_sec_per_m", "p0"] # what has to be constant 
     vars_heatmap = ["N_agents", "p0"] # what has to be constant
     points_in_time = [[1*24*3600, 2*24*3600, 3*24*3600]]

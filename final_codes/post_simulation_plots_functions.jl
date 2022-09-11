@@ -301,7 +301,7 @@ function plot_XY(variable1::String, variable2::String, results::Dict;
                 val[var] = val[var][1]
             end
             if var in ["total_infected", "TTC_infected", "street_infected"]
-                val[var] = isnothing(point_in_time) ? val[var][end] : val[var][Int(point_in_time)]
+                val[var] = isnothing(point_in_time) ? val[var][end] : val[var][Int(round(point_in_time))]
                 val[var] = val[var]/(isnothing(total_indic) ? 1 : 0.01 * value[total_indic])
             end
             if var == "prct_of_agents_used_TTC"
@@ -355,7 +355,7 @@ function plot_XYY(variable1::String, variable2::String, x_var::String,  results:
                 val[var] = val[var][1]
             end
             if var in ["total_infected", "TTC_infected", "street_infected"]
-                val[var] = isnothing(point_in_time) ? val[var][end] : val[var][Int(point_in_time)]
+                val[var] = isnothing(point_in_time) ? val[var][end] : val[var][Int(round(point_in_time))]
                 val[var] = val[var]/(isnothing(total_indic) ? 1 : 0.01*value[total_indic])
             end
             if var == "prct_of_agents_used_TTC"

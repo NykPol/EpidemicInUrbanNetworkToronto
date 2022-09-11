@@ -26,14 +26,13 @@ using Plotly
 include("post_simulation_plots_functions.jl")
 
 # SETUP
-folder_name = "res1"
-outputs_path = "SOME_PATH"
-#outputs_path = "SOME_PATH"
+folder_name = "toy_model3"
+outputs_path = "SOME_PATH/COVID_Simulator_Toronto/final_codes/data_output/$folder_name"
 vars = ["N_agents", "agents_speed_in_sec_per_m", "p0"] # what has to be constant 
-vars_heatmap = ["N_agents", "p0"] # what has to be constant
-points_in_time = [[1*24*3600, 2*24*3600, 3*24*3600]]
-points_in_time_sing = [0.25*24*3600, 0.5*24*3600, 0.75*24*3600, 1*24*3600, 2*24*3600, 3*24*3600]
-orig_map_nodes_num = 770
+#vars_heatmap = ["N_agents", "p0"] # what has to be constant
+#points_in_time = [[1*24*3600, 2*24*3600, 3*24*3600]]
+points_in_time_sing = [0.5*3600, 1*3600, 1.5*3600, 1.75*3600]#[0.25*24*3600, 0.5*24*3600, 0.75*24*3600, 1*24*3600, 2*24*3600, 3*24*3600]
+#orig_map_nodes_num = 770
 
 # reading possible parameter values
 params_to_plot = CSV.read("$outputs_path/sim_params_comb_df.csv", DataFrame)
@@ -52,7 +51,7 @@ for var in vars
 end
 
 # actual loop
-for n_ag in values_to_loop[vars[1]], #  THIS HAS TO BE CHANGED IF VAR NUMBER IS NOT 3
+for n_ag in values_to_loop[vars[1]],
     speed in values_to_loop[vars[2]],
     p0 in values_to_loop[vars[3]]
 
@@ -148,7 +147,7 @@ for n_ag in values_to_loop[vars[1]], #  THIS HAS TO BE CHANGED IF VAR NUMBER IS 
 
     for (index, value) in enumerate(points_in_time_sing)
         gr()
-        ind = value/3600/24
+        ind = value/3600
         point_in_time_by_var(["total_infected", "TTC_infected", "street_infected"],
         "TTC_car_freq", full_output, 
         points_in_time = [value], 
@@ -159,28 +158,28 @@ for n_ag in values_to_loop[vars[1]], #  THIS HAS TO BE CHANGED IF VAR NUMBER IS 
         x_lab = "public transport frequency (min)",
         y_lab = "% infected",
         #title = "Odsetek zarażonych vs. częstotliwość kursowania TTC, EOD $index", #COSMETIC
-        out_name = "$folder_name/multiple_variables/ag_$n_ag&_sp_$speed&_p0_$p0&_EOD$ind", #COSMETIC
+        out_name = "$folder_name/multiple_variables/ag_$n_ag&_sp_$speed&_p0_$p0&_$ind&h", #COSMETIC
         with_export = true)
         gr()
-        plot_XY("prct_of_agents_used_TTC", "total_infected", full_output, 
-            point_in_time = value, 
-            total_indic = "N_agents",
-            x_lab = "public transport users",
-            y_lab = "% infected",
-            #title = "Odsetek zarażonych vs. odsetek osób korzystających z TTC, EOD $index", #COSMETIC
-            out_name = "$folder_name/XY_plots/ag_$n_ag&_sp_$speed&_p0_$p0&_EOD$ind", #COSMETIC
-            with_export = true)
-        gr()
-        plot_XYY("prct_of_agents_used_TTC", "total_infected", "TTC_car_freq", full_output, 
-                point_in_time = value,
-                divx = 60,
-                total_indic = "N_agents",
-                x_lab = "public transport frequency (min)",
-                y1_lab = "% public transport users",
-                y2_lab = "% infected",
-                #title = "Infected population & TTC usage by TTC frequency, EOD $index",
-                out_name = "$folder_name/XYY_plots/ag_$n_ag&_sp_$speed&_p0_$p0&_EOD$ind",
-                with_export = true)
+        # plot_XY("prct_of_agents_used_TTC", "total_infected", full_output, 
+        #     point_in_time = value, 
+        #     total_indic = "N_agents",
+        #     x_lab = "public transport users",
+        #     y_lab = "% infected",
+        #     #title = "Odsetek zarażonych vs. odsetek osób korzystających z TTC, EOD $index", #COSMETIC
+        #     out_name = "$folder_name/XY_plots/ag_$n_ag&_sp_$speed&_p0_$p0&_EOD$ind", #COSMETIC
+        #     with_export = true)
+        # gr()
+        # plot_XYY("prct_of_agents_used_TTC", "total_infected", "TTC_car_freq", full_output, 
+        #         point_in_time = value,
+        #         divx = 1,
+        #         total_indic = "N_agents",
+        #         x_lab = "public transport frequency (min)",
+        #         y1_lab = "% public transport users",
+        #         y2_lab = "% infected",
+        #         #title = "Infected population & TTC usage by TTC frequency, EOD $index",
+        #         out_name = "$folder_name/XYY_plots/ag_$n_ag&_sp_$speed&_p0_$p0&_EOD$ind",
+        #         with_export = true)
     end
         
     # full_output, params_sets = read_results(outputs_path,

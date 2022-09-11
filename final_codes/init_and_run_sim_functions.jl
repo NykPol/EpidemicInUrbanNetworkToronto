@@ -6,7 +6,7 @@ function initialize_sim_and_run(;m::MapData
 				, orig_map_nodes_num::Int
 				, when_to_run_people::Float64 = sim_params.when_to_run_people
 				, when_to_run_wagons::Float64 = sim_params.when_to_run_wagons
-				, TTC_freq::Int = sim_params.TTC_car_freq
+				, TTC_freq::Union{Int, Float64} = sim_params.TTC_car_freq
 				, max_load_subway::Int = sim_params.max_load_subway
 				, max_load_streetcar::Int = sim_params.max_load_streetcar
 				, max_load_gov_restr::Float64 =  sim_params.max_load_gov_restr
@@ -84,7 +84,7 @@ function initialize_sim_and_run_N_times_and_gather_results(;m::MapData
 				, orig_map_nodes_num::Int
 				, when_to_run_people::Float64 = sim_params.when_to_run_people
 				, when_to_run_wagons::Float64 = sim_params.when_to_run_wagons
-				, TTC_freq::Int = sim_params.TTC_car_freq
+				, TTC_freq::Union{Int,Float64} = sim_params.TTC_car_freq
 				, max_load_subway::Int = sim_params.max_load_subway
 				, max_load_streetcar::Int = sim_params.max_load_streetcar
 				, max_load_gov_restr::Float64 =  sim_params.max_load_gov_restr
@@ -119,19 +119,20 @@ function initialize_sim_and_run_N_times_and_gather_results(;m::MapData
 	all_TTC_trips_count_streetcars = Float64[]
 	all_TTC_trips_count_subway = Float64[]
 	
-	max_pass_per_wagon_subway = Vector{Float64}[] 
-	max_pass_per_wagon_streetcars = Vector{Float64}[]
+	# max_pass_per_wagon_subway = Vector{Float64}[] 
+	# max_pass_per_wagon_streetcars = Vector{Float64}[]
 
-	nodes_agents_maxes = Dict{Int,Vector}()
+	# nodes_agents_maxes = Dict{Int,Vector}()
 
 	nodes_visits_res = Dict{Int,Vector}()
 	for ver in 1:vv
 		nodes_visits_res[ver] = Vector()
 	end
 
-    inf_no_per_node_vect = Dict{Int, Dict{Int, Union{Vector{Int},Tuple}}}()
-    poss_interact_per_node_vect = Dict{Int, Dict{Int, Union{Vector{Int},Tuple}}}()
-    inf_no_per_line_TTC_vect = Dict{Symbol, Dict{Int, Union{Vector{Int},Tuple}}}()
+	# num_interactions_vec_street_all_sim = Dict{Int,Vector{Int}}()
+	# num_interactions_vec_TTC_all_sim = Dict{Int,Vector{Int}}()
+
+	avg_no_of_trips = Vector{Float64}()
 	
 	println("Your simulation will be run ", N_times_to_run, " times")
 	for i in 1:N_times_to_run	
@@ -155,74 +156,46 @@ function initialize_sim_and_run_N_times_and_gather_results(;m::MapData
 						, parset_id = parset_id
 						, prepared_agents = prepared_agents
 						, max_interactions_TTC = max_interactions_TTC
-						, max_interactions_street = max_interactions_street)	
+						, max_interactions_street = max_interactions_street)
+		println("run $i done")	
 		push!(total_cnt, s.infected_agents_count)
 		push!(ttc_cnt, s.infected_agents_wagon)
 		push!(street_cnt, s.infected_agents_street)
 		
-		time_spend_in_TTC, TTC_types_used, time_spend_in_TTC_comp_to_total_path_time = TTC_usage_by_agents(s,orig_map_nodes_num);
-		push!(prct_ag_used_TTC, round((sum([1 for i in time_spend_in_TTC if i > 0]) / N_agents)*100))
-		push!(mean_time_spent_in_TTC, mean([i for i in time_spend_in_TTC if i > 0]))
+		# time_spend_in_TTC, TTC_types_used, time_spend_in_TTC_comp_to_total_path_time = TTC_usage_by_agents(s,orig_map_nodes_num);
+		# push!(prct_ag_used_TTC, round((sum([1 for i in time_spend_in_TTC if i > 0]) / N_agents)*100))
+		# push!(mean_time_spent_in_TTC, mean([i for i in time_spend_in_TTC if i > 0]))
 		
-		loop_max_load_achieved_streetcar = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar) & (v >= max_load_streetcar)]
-		loop_max_load_achieved_subway = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway) & (v >= max_load_subway)]
-		push!(max_load_achieved_streetcars,sum(loop_max_load_achieved_streetcar))
-		push!(max_load_achieved_subway,sum(loop_max_load_achieved_subway))
+		# loop_max_load_achieved_streetcar = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar) & (v >= max_load_streetcar)]
+		# loop_max_load_achieved_subway = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway) & (v >= max_load_subway)]
+		# push!(max_load_achieved_streetcars,sum(loop_max_load_achieved_streetcar))
+		# push!(max_load_achieved_subway,sum(loop_max_load_achieved_subway))
 		
-		loop_all_TTC_trips_count_streetcars = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar)]
-		loop_all_TTC_trips_count_subway = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway)]
-		push!(all_TTC_trips_count_streetcars,sum(loop_all_TTC_trips_count_streetcars))
-		push!(all_TTC_trips_count_subway,sum(loop_all_TTC_trips_count_subway))
+		# loop_all_TTC_trips_count_streetcars = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar)]
+		# loop_all_TTC_trips_count_subway = [1 for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway)]
+		# push!(all_TTC_trips_count_streetcars,sum(loop_all_TTC_trips_count_streetcars))
+		# push!(all_TTC_trips_count_subway,sum(loop_all_TTC_trips_count_subway))
 		
-		loop_max_pass_per_wagon_streetcars = [v for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar)]
-		loop_max_pass_per_wagon_subway = [v for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway)]
-		push!(max_pass_per_wagon_streetcars, [mean(loop_max_pass_per_wagon_streetcars),std(loop_max_pass_per_wagon_streetcars),maximum(loop_max_pass_per_wagon_streetcars)])
-		push!(max_pass_per_wagon_subway, [mean(loop_max_pass_per_wagon_subway),std(loop_max_pass_per_wagon_subway),maximum(loop_max_pass_per_wagon_subway)])
+		# loop_max_pass_per_wagon_streetcars = [v for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :streetcar)]
+		# loop_max_pass_per_wagon_subway = [v for (k,v) in s.max_passengers_per_TTC_car if (routes_types_both_dir[k[2]] == :subway)]
+		# # push!(max_pass_per_wagon_streetcars, [mean(loop_max_pass_per_wagon_streetcars),std(loop_max_pass_per_wagon_streetcars),maximum(loop_max_pass_per_wagon_streetcars)])
+		# push!(max_pass_per_wagon_subway, [mean(loop_max_pass_per_wagon_subway),std(loop_max_pass_per_wagon_subway),maximum(loop_max_pass_per_wagon_subway)])
 
-		nodes_agents_maxes[i] = deepcopy(s.nodes_agents_max)
+		# nodes_agents_maxes[i] = deepcopy(s.nodes_agents_max)
 
-		for vis_k in keys(s.nodes_visits)
-			push!(nodes_visits_res[vis_k], s.nodes_visits[vis_k])
+		# for vis_k in keys(s.nodes_visits)
+		# 	push!(nodes_visits_res[vis_k], s.nodes_visits[vis_k])
+		# end
+
+		# num_interactions_vec_street_all_sim[i] = deepcopy(s.num_interactions_vec_street)
+		# num_interactions_vec_TTC_all_sim[i] = deepcopy(s.num_interactions_vec_TTC)
+
+		tmp_trips = Vector{Float64}()
+		for ag in s.agents
+			push!(tmp_trips, ag.no_of_trips)
 		end
-
-		# Number of inf - Street and TTC nodes
-		for my_node_id in keys(s.inf_no_per_node)
-			if my_node_id ∉ keys(inf_no_per_node_vect)
-				inf_no_per_node_vect[my_node_id] = Dict{Int, Vector{Int}}()
-			end
-			for unique_inf in keys(s.inf_no_per_node[my_node_id])
-				if unique_inf ∉ keys(inf_no_per_node_vect[my_node_id])
-					inf_no_per_node_vect[my_node_id][unique_inf] = Vector{Int}()
-				end       
-				push!(inf_no_per_node_vect[my_node_id][unique_inf], s.inf_no_per_node[my_node_id][unique_inf])
-			end
-		end
-
-		# Number of possible interactions - Street
-		for my_node_id in keys(s.poss_interact_per_node)
-			if my_node_id ∉ keys(poss_interact_per_node_vect)
-				poss_interact_per_node_vect[my_node_id] = Dict{Int, Vector{Int}}()
-			end
-			for unique_inf in keys(s.poss_interact_per_node[my_node_id])
-				if unique_inf ∉ keys(poss_interact_per_node_vect[my_node_id])
-					poss_interact_per_node_vect[my_node_id][unique_inf] = Vector{Int}()
-				end       
-				push!(poss_interact_per_node_vect[my_node_id][unique_inf], s.poss_interact_per_node[my_node_id][unique_inf])
-			end
-		end
-
-		# Number of inf - TTC lines
-		for my_ttc_line in keys(s.inf_no_per_line_TTC)
-			if my_ttc_line ∉ keys(inf_no_per_line_TTC_vect)
-				inf_no_per_line_TTC_vect[my_ttc_line] = Dict{Int, Vector{Int}}()
-			end
-			for unique_inf in keys(s.inf_no_per_line_TTC[my_ttc_line])
-				if unique_inf ∉ keys(inf_no_per_line_TTC_vect[my_ttc_line])
-					inf_no_per_line_TTC_vect[my_ttc_line][unique_inf] = Vector{Int}()
-				end       
-				push!(inf_no_per_line_TTC_vect[my_ttc_line][unique_inf], s.inf_no_per_line_TTC[my_ttc_line][unique_inf])
-			end
-		end
+		push!(avg_no_of_trips, mean(tmp_trips))
+		tmp_trips = Vector{Float64}()
 	end	
 	
 	res_gathering["total_infected"] = (ceil.(mean(total_cnt)), ceil.(std(total_cnt)))
@@ -238,47 +211,24 @@ function initialize_sim_and_run_N_times_and_gather_results(;m::MapData
 	res_gathering["all_TTC_trips_count_streetcars"] = (ceil.(mean(all_TTC_trips_count_streetcars)),ceil.(std(all_TTC_trips_count_streetcars)))
 	res_gathering["all_TTC_trips_count_subway"] = (ceil.(mean(all_TTC_trips_count_subway)),ceil.(std(all_TTC_trips_count_subway)))
 	
-	res_gathering["max_pass_per_wagon_subway"] = (ceil.(mean(max_pass_per_wagon_subway)),ceil.(maximum(max_pass_per_wagon_subway)))
-	res_gathering["max_pass_per_wagon_streetcars"] = (ceil.(mean(max_pass_per_wagon_streetcars)),ceil.(maximum(max_pass_per_wagon_streetcars)))
+	# res_gathering["max_pass_per_wagon_subway"] = (ceil.(mean(max_pass_per_wagon_subway)),ceil.(maximum(max_pass_per_wagon_subway)))
+	# res_gathering["max_pass_per_wagon_streetcars"] = (ceil.(mean(max_pass_per_wagon_streetcars)),ceil.(maximum(max_pass_per_wagon_streetcars)))
 
-	res_gathering["agents_in_nodes_max"] = (ceil.(mean(total_cnt)), ceil.(std(total_cnt)))
-	res_gathering["agents_in_nodes_max"] = (ceil.(mean(total_cnt)), ceil.(std(total_cnt)))
+	# res_gathering["agents_in_nodes_max"] = (ceil.(mean(total_cnt)), ceil.(std(total_cnt)))
 
-	res_gathering["nodes_agents_maxes"] = nodes_agents_maxes # we might need both dimensions
+	# res_gathering["nodes_agents_maxes"] = nodes_agents_maxes # we might need both dimensions
 
-	nodes_visits_mean = Dict{Int,Float64}()
-	for res_k in keys(nodes_visits_res)
-		nodes_visits_mean[res_k] = ceil(mean(nodes_visits_res[res_k]))
-	end
+	# nodes_visits_mean = Dict{Int,Float64}()
+	# for res_k in keys(nodes_visits_res)
+	# 	nodes_visits_mean[res_k] = ceil(mean(nodes_visits_res[res_k]))
+	# end
 
-	res_gathering["nodes_visits_mean"] = nodes_visits_mean
+	# res_gathering["nodes_visits_mean"] = nodes_visits_mean
 
-	# Number of inf - Street and TTC nodes
-	for my_node_id in keys(inf_no_per_node_vect)
-		for unique_inf in keys(inf_no_per_node_vect[my_node_id])
-			inf_no_per_node_vect[my_node_id][unique_inf] = (mean(inf_no_per_node_vect[my_node_id][unique_inf]), std(inf_no_per_node_vect[my_node_id][unique_inf]))
-		end
-	end
+	# res_gathering["num_interactions_vec_street"] = num_interactions_vec_street_all_sim
+	# res_gathering["num_interactions_vec_TTC"] = num_interactions_vec_TTC_all_sim
 
-	res_gathering["number_of_inf_per_node"] = inf_no_per_node_vect
-
-	# Number of possible interactions - Street
-	for my_node_id in keys(poss_interact_per_node_vect)
-		for unique_inf in keys(poss_interact_per_node_vect[my_node_id])
-			poss_interact_per_node_vect[my_node_id][unique_inf] = (mean(poss_interact_per_node_vect[my_node_id][unique_inf]), std(poss_interact_per_node_vect[my_node_id][unique_inf]))
-		end
-	end
-
-	res_gathering["number_of_possible_inter_per_mode"] = poss_interact_per_node_vect
-
-	# Number of inf - TTC lines
-	for my_ttc_line in keys(inf_no_per_line_TTC_vect)
-		for unique_inf in keys(inf_no_per_line_TTC_vect[my_ttc_line])
-			inf_no_per_line_TTC_vect[my_ttc_line][unique_inf] = (mean(inf_no_per_line_TTC_vect[my_ttc_line][unique_inf]), std(inf_no_per_line_TTC_vect[my_ttc_line][unique_inf]))
-		end
-	end
-	res_gathering["number_of_inf_per_TTC_line"] = inf_no_per_line_TTC_vect
-
+	res_gathering["avg_num_of_trips"] = (mean(avg_no_of_trips), std(avg_no_of_trips))
 
 	println("All runs completed!")
 	return res_gathering
@@ -286,7 +236,7 @@ end
 
 
 ### Create parameters grid ###
-function create_df_with_sim_params(;TTC_car_freq::Union{Vector{Int64},Int64}
+function create_df_with_sim_params(;TTC_car_freq::Union{Vector{Int64},Vector{Float64},Int64, Float64}
                                     , max_load_gov_restr::Union{Vector{Float64},Float64}
                                     , when_to_run_people::Union{Vector{Float64},Float64}
                                     , when_to_run_wagons::Union{Vector{Float64},Float64}

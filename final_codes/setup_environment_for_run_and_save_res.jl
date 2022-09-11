@@ -1,5 +1,5 @@
 # Working directory to /final_codes/
-cd("SOME_PATH")
+cd("SOME_PATH/COVID_Simulator_Toronto/final_codes")
 println("Your current directory: ", pwd())
 
 if split(pwd(),"/")[end] != "final_codes"

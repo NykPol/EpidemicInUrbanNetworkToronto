@@ -1,6 +1,6 @@
 ### Specify simulation parameters ###
 @with_kw mutable struct Simulation_Parameters
-    TTC_car_freq::Int64 
+    TTC_car_freq::Union{Int64, Float64}
     max_load_gov_restr::Float64 # 1.0 means there is no restrictions, because TTC car can take 1.0*max_load.
     when_to_run_people::Float64 
     when_to_run_wagons::Float64 
@@ -32,6 +32,8 @@ end
     distances_home_work::Dict{Int,Dict} = Dict{Int,Dict}()
     paths_work_home::Dict{Int, Dict} = Dict{Int, Dict}()
     distances_work_home::Dict{Int,Dict} = Dict{Int,Dict}()
+    probs_home_work::Array = zeros(2)
+    probs_work_home::Array = zeros(2)
     no_of_trips::Int = 0
 
     wagon_id::Int64 = -999
@@ -107,9 +109,8 @@ const EventTime = Tuple{Float64,Float64}
     max_interactions_TTC::Int
     max_interactions_street::Int
 
-    inf_no_per_node::Dict{Int, Dict{Int, Int}}
-    poss_interact_per_node::Dict{Int, Dict{Int, Int}}
-    inf_no_per_line_TTC::Dict{Symbol, Dict{Int, Int}}
+    num_interactions_vec_street::Vector{Int}
+    num_interactions_vec_TTC::Vector{Int}
     
 end
 
@@ -120,7 +121,7 @@ function Simulation(m::OpenStreetMapX.MapData
 					, routes_types_both_dir::Dict{Symbol,Symbol}
 					, N_agents::Int
 					, sim_run_time_in_secs::Int
-					, TTC_freq::Int64
+					, TTC_freq::Union{Int64, Float64}
                     , max_load_subway::Int64
                     , max_load_streetcar::Int64
 					, max_load_gov_restr::Float64
@@ -143,8 +144,8 @@ function Simulation(m::OpenStreetMapX.MapData
 	if length(prepared_agents) == 0
         println("Agents are being created from scratch.")
         ### Agents creation ###
-        home_loc = rand(1:orig_map_nodes_num,N_agents)
-        work_loc = rand(1:orig_map_nodes_num,N_agents)
+        home_loc = 1#rand(1:orig_map_nodes_num,N_agents)
+        work_loc = 4#rand(1:orig_map_nodes_num,N_agents)
         agents = Commuter.(1:N_agents, home_loc, home_loc, work_loc)
         for ag in agents
             while ag.home_loc == ag.work_loc
@@ -154,7 +155,8 @@ function Simulation(m::OpenStreetMapX.MapData
         # Routes from home to work and inverse
         for agent in agents
             # Home to work
-            ys = yen_k_shortest_paths(m.g, agent.home_loc, agent.work_loc, m.w, 3, maxdist=100_000)
+            agent.probs_home_work = zeros(2)
+            ys = yen_k_shortest_paths(m.g, agent.home_loc, agent.work_loc, m.w, 2, maxdist=100_000)
             for (index, nodes) in enumerate(ys.paths)
                 agent.paths_home_work[index] = Dict()
                 agent.distances_home_work[index] = Dict()
@@ -162,10 +164,13 @@ function Simulation(m::OpenStreetMapX.MapData
                 for i in 1:(length(nodes)-1)
                     agent.distances_home_work[index][nodes[i]] = m.w[nodes[i], nodes[i+1]]
                 end
+                agent.probs_home_work[index] = (exp(-(ys.dists[index])/minimum(ys.dists)))
             end
+            agent.probs_home_work = agent.probs_home_work./sum(agent.probs_home_work)
             
             # Work to home
-            ys = yen_k_shortest_paths(m.g, agent.work_loc, agent.home_loc, m.w, 3, maxdist=100_000)
+            agent.probs_work_home = zeros(2)
+            ys = yen_k_shortest_paths(m.g, agent.work_loc, agent.home_loc, m.w, 2, maxdist=100_000)
             for (index, nodes) in enumerate(ys.paths)
                 agent.paths_work_home[index] = Dict()
                 agent.distances_work_home[index] = Dict()
@@ -173,7 +178,9 @@ function Simulation(m::OpenStreetMapX.MapData
                 for i in 1:(length(nodes)-1)
                     agent.distances_work_home[index][nodes[i]] = m.w[nodes[i], nodes[i+1]]
                 end
-            end        
+                agent.probs_work_home[index] = (exp(-(ys.dists[index])/minimum(ys.dists)))
+            end
+            agent.probs_work_home = agent.probs_work_home./sum(agent.probs_work_home)
             # Current path: home --> work 
             # !!! We should not assign it here, because it will negatively influence timing. 
             # It will be 1-step delayed comparing to the reality. 
@@ -240,7 +247,7 @@ function Simulation(m::OpenStreetMapX.MapData
         infected_agents_count = fill(n_of_patients_zero, sim_run_time_in_secs + 1), infected_agents_wagon = zeros(Int, sim_run_time_in_secs + 1),
         infected_agents_street = zeros(Int, sim_run_time_in_secs + 1), max_load_subway = max_load_subway,
         max_load_streetcar = max_load_streetcar, max_load_gov_restr = max_load_gov_restr, p0 = p0, max_interactions_street = max_interactions_street, max_interactions_TTC = max_interactions_TTC, 
-        inf_no_per_node = Dict{Int, Dict{Int, Int}}(),  poss_interact_per_node = Dict{Int, Dict{Int, Int}}(), inf_no_per_line_TTC = Dict{Symbol, Dict{Int, Int}}()) 
+        num_interactions_vec_street = Vector{Int}(), num_interactions_vec_TTC = Vector{Int}()) 
 end
 
 

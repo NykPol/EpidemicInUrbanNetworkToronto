@@ -17,7 +17,7 @@ function create_commuters_to_save(m::OpenStreetMapX.MapData
     # Routes from home to work and inverse
     for agent in agents
         # Home to work
-        ys = yen_k_shortest_paths(m.g, agent.home_loc, agent.work_loc, m.w, 3, maxdist=100_000)
+        ys = yen_k_shortest_paths(m.g, agent.home_loc, agent.work_loc, m.w, 2, maxdist=100_000)
         for (index, nodes) in enumerate(ys.paths)
             agent.paths_home_work[index] = Dict()
             agent.distances_home_work[index] = Dict()
@@ -28,7 +28,7 @@ function create_commuters_to_save(m::OpenStreetMapX.MapData
         end
         
         # Work to home
-        ys = yen_k_shortest_paths(m.g, agent.work_loc, agent.home_loc, m.w, 3, maxdist=100_000)
+        ys = yen_k_shortest_paths(m.g, agent.work_loc, agent.home_loc, m.w, 2, maxdist=100_000)
         for (index, nodes) in enumerate(ys.paths)
             agent.paths_work_home[index] = Dict()
             agent.distances_work_home[index] = Dict()

@@ -22,22 +22,10 @@ function step!(model::Simulation, t::EventTime, agent::Commuter, orig_map_nodes_
 				model.infected_agents_count_current += 1
 				model.infected_agents_street_current += 1
 			end
-
-            # Statistics gathering
-            if agent.pos ∉ keys(model.inf_no_per_node)
-                model.inf_no_per_node[agent.pos] = Dict{Int,Int}()
-            end
-            
-            if inf_no ∉ keys(model.inf_no_per_node[agent.pos])
-                model.inf_no_per_node[agent.pos][inf_no] = 1
-            else
-                model.inf_no_per_node[agent.pos][inf_no] += 1
-            end
-
+            push!(model.num_interactions_vec_street,inf_no)
 		end
     else # for agents that are infected -> possibly infect healthy agents standing at the intersection
-
-        num_of_interactions = 0 # an agent can interact maximum with max_interactions_street agents
+		num_of_interactions = 0 # an agent can interact maximum with max_interactions_street agents
         for i in model.nodes_agents[agent.pos]
             if !model.agents[i].infected
                 p = model.p0  # just from that one agent!
@@ -54,20 +42,8 @@ function step!(model::Simulation, t::EventTime, agent::Commuter, orig_map_nodes_
 				break
 			end
         end
-
-        # Statistics gathering
         if num_of_interactions >= 1
-            all_potential_interactions = length(model.nodes_agents[agent.pos])
-            if agent.pos ∉ keys(model.poss_interact_per_node)
-                model.poss_interact_per_node[agent.pos] = Dict{Int,Int}()
-            end
-
-            if all_potential_interactions ∉ keys(model.poss_interact_per_node[agent.pos])
-                model.poss_interact_per_node[agent.pos][all_potential_interactions] = 1
-            else
-                model.poss_interact_per_node[agent.pos][all_potential_interactions] += 1
-            end
-            
+            push!(model.num_interactions_vec_street,num_of_interactions) 
         end
     end
     # after the infections from previous position are handled, we can move the agent
@@ -152,12 +128,12 @@ function move_agent!(agent::Commuter, model::Simulation, orig_map_nodes_num::Int
             #If an agent reached the last node a new travel destination will be selected.
             if !(agent.pos in keys(agent.path)) 
                 if agent.direction == :home_to_work
-                    ind = sample(1:length(keys(agent.paths_work_home)))
+                    ind = sample(1:length(keys(agent.paths_work_home)), ProbabilityWeights(agent.probs_work_home))
                     agent.path = agent.paths_work_home[ind]
                     agent.path_distances = agent.distances_work_home[ind]
                     agent.direction = :work_to_home
                 else
-                    ind = sample(1:length(keys(agent.paths_home_work)))
+                    ind = sample(1:length(keys(agent.paths_home_work)), ProbabilityWeights(agent.probs_home_work))
                     agent.path = agent.paths_home_work[ind]
                     agent.path_distances = agent.distances_home_work[ind]
                     agent.direction = :home_to_work
@@ -282,29 +258,7 @@ function leave_passengers!(model::Simulation, t::EventTime, wagon::Wagon)
 						model.infected_agents_wagon_current += 1
 					end
 					pass.met_infected_in_wagon = Set{Int}()
-
-                    
-                    # Statistics gathering
-                    if wagon.line ∉ keys(model.inf_no_per_line_TTC)
-                        model.inf_no_per_line_TTC[wagon.line] = Dict{Int,Int}()
-                    end
-
-                    if inf_no ∉ keys(model.inf_no_per_line_TTC[wagon.line])
-                        model.inf_no_per_line_TTC[wagon.line][inf_no] = 1
-                    else
-                        model.inf_no_per_line_TTC[wagon.line][inf_no] += 1
-                    end 
-
-                    # Statistics gathering
-                    if wagon.pos ∉ keys(model.inf_no_per_node)
-                        model.inf_no_per_node[wagon.pos] = Dict{Int,Int}()
-                    end
-
-                    if inf_no ∉ keys(model.inf_no_per_node[wagon.pos])
-                        model.inf_no_per_node[wagon.pos][inf_no] = 1
-                    else
-                        model.inf_no_per_node[wagon.pos][inf_no] += 1
-                    end
+                    push!(model.num_interactions_vec_TTC,inf_no) 
 				end
 			end
 			# Delete passengers who left a TTC car and add them new events.
@@ -342,29 +296,7 @@ function leave_passengers!(model::Simulation, t::EventTime, wagon::Wagon)
 							model.infected_agents_wagon_current += 1
                         end
 						pass.met_infected_in_wagon = Set{Int}()
-                        
-                        # Statistics gathering
-                        if wagon.line ∉ keys(model.inf_no_per_line_TTC)
-                            model.inf_no_per_line_TTC[wagon.line] = Dict{Int,Int}()
-                        end
-
-                        if inf_no ∉ keys(model.inf_no_per_line_TTC[wagon.line])
-                            model.inf_no_per_line_TTC[wagon.line][inf_no] = 1
-                        else
-                            model.inf_no_per_line_TTC[wagon.line][inf_no] += 1
-                        end
-                        
-
-                        # Statistics gathering
-                        if wagon.pos ∉ keys(model.inf_no_per_node)
-                            model.inf_no_per_node[wagon.pos] = Dict{Int,Int}()
-                        end
-
-                        if inf_no ∉ keys(model.inf_no_per_node[wagon.pos])
-                            model.inf_no_per_node[wagon.pos][inf_no] = 1
-                        else
-                            model.inf_no_per_node[wagon.pos][inf_no] += 1
-                        end
+                        push!(model.num_interactions_vec_TTC,inf_no) 
                     end
                 end
 				
